@@ -38,18 +38,23 @@ function App() {
   useEffect(() => {
     (async () => {
       if (!xtermRef.current) return;
+      const terminal = xtermRef.current.terminal;
 
       try {
-        xtermRef.current.terminal.write("loading");
         const loaded = await load();
-        xtermRef.current.terminal.write("booting");
         const container = await loaded.boot();
-        xtermRef.current.terminal.write("loading files");
         await container.loadFiles(fileTree);
-        xtermRef.current.terminal.write("success!!");
+        await container.run(
+          { command: "yarn" },
+          {
+            stdout: (data) => {
+              terminal.write(data);
+            },
+          }
+        );
       } catch (e) {
-        xtermRef.current.terminal.write("failed!!");
-        xtermRef.current.terminal.write(String(e));
+        terminal.write("failed!!\r\n");
+        terminal.write(String(e));
       }
     })();
   }, []);
